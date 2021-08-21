@@ -15,5 +15,8 @@ def MyFunction(n):
 test_list = [random.randint(70000,120000) for _ in range(50)]
 with tqdm(total=len(test_list), desc="Processing") as pbar:
     for value in test_list:
-        MyFunction(value)
+        try:
+            MyFunction(value)
+        except Exception as e:
+            pbar.write("An error just happened! {}".format(repr(e)))
         pbar.update(1)

@@ -50,14 +50,14 @@ from tqdm import tqdm
 from multiprocessing import Pool
 
 import random
-import multiprocess_profiler as mpp
+import multiprocess_profiler.profiler as mpp
 
 def MyFunction(n):
     # Here we want to monitor this whole function
     with mpp.Profiler():
         f = 1
-        if random.random() < 0.1:
-            raise Exception("This is a random exception")
+        if random.random() < 0.05:
+            raise Exception("This is a random exception, you should check profile.csv to see what happened")
         for i in range(1,n+1):
                 f = f*i
         return f
@@ -67,10 +67,11 @@ with Pool() as executor:
     with tqdm(total=len(test_list), desc="Processing") as pbar:
         result_futures = []
         for value in test_list:
-                result_futures.append(executor.apply_async(MyFunction, value))
+                result_futures.append(executor.apply_async(MyFunction, (value,)))
         for result in result_futures:
             result.get()
             pbar.update(1)
+
 ```
 
 The example above would result in a CSV where every row has an id "MyFunction" (since it's the only thing measured) and we can check how much time each process on the pool took to run it as well as see if it breaks.
@@ -101,7 +102,10 @@ def MyFunction(n):
 test_list = [random.randint(70000,120000) for _ in range(50)]
 with tqdm(total=len(test_list), desc="Processing") as pbar:
     for value in test_list:
-        MyFunction(value)
+        try:
+            MyFunction(value)
+        except Exception as e:
+            pbar.write("An error just happened! {}".format(repr(e)))
         pbar.update(1)
 ```
 
@@ -131,7 +135,10 @@ def MyFunction(n):
 test_list = [random.randint(70000,120000) for _ in range(50)]
 with tqdm(total=len(test_list), desc="Processing") as pbar:
     for value in test_list:
-        MyFunction(value)
+        try:
+            MyFunction(value)
+        except Exception as e:
+            pbar.write("An error just happened! {}".format(repr(e)))
         pbar.update(1)
 ```
 
