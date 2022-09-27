@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
   name = 'multiprocess_profiler',
   packages = ['multiprocess_profiler'],
-  version = '0.1',
+  version = '1.0',
   license='MIT',
   description = 'Profile your code, measuring times, calls per function, errors...',
   author = 'Pedro Henrique Silva Domingues',

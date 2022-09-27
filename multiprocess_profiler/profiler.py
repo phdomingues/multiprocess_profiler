@@ -94,7 +94,7 @@ class Profiler:
         self.__format = allow_formating
         self.__autonaming = autonaming
 
-        self.__header = ["id", "time", "pid", "ppid", "process_name", "parent_process_name", "broken", "error_type", "error_value", "traceback"]
+        self.__header = ["id", "time", "start_timestamp", "end_timestamp", "paused_time", "pid", "ppid", "process_name", "parent_process_name", "broken", "error_type", "error_value", "traceback"]
         self.__reset_attributes()
 
         self.__caller_index = 1 # [0] is __exit__, so [1] is by default the caller of __exit__, but it could be the wrapper when using as decorator, in this case the name is determined on __call__
@@ -121,7 +121,8 @@ class Profiler:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.__check_not_started("Profiler was not started")
         if self.__is_paused: self.resume() # In case the user paused but never resumed
-        measured_time = time.time() - self.__reference_time - self.__paused_time # Measures the time since __enter__ was called
+        end_time = time.time()
+        measured_time = end_time - self.__reference_time - self.__paused_time # Measures the time since __enter__ was called
         broken = exc_traceback is not None # If some exception was raised inside the with statement, mark broken as true
         if self.__id is None and self.__autonaming:
             try:
@@ -162,7 +163,7 @@ class Profiler:
                 except StopIteration:
                     writer.writerow(self.__header) # File is empty - write the header
                 finally:
-                    writer.writerow([self.__id, measured_time, pid, ppid, pname, ppname, broken, exc_type, exc_value, traceback.format_exc()]) # write content
+                    writer.writerow([self.__id, measured_time, self.__reference_time, end_time, self.__paused_time, pid, ppid, pname, ppname, broken, exc_type, exc_value, traceback.format_exc()]) # write content
         except Timeout:
             # Timeout 
             if not self.__ignore_timeout:
